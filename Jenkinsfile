@@ -11,7 +11,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout([$class: 'GitSCM', 
+                    branches: [[name: '*/main']],  // Change this to match your default branch
+                    userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git"]]
+                ])
             }
         }
         
