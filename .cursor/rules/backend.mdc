@@ -1,0 +1,129 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Rules and Best Practices for Java Spring Boot Application
+ 
+## 1. **Create Spring Boot Project**
+- Install **Spring Boot CLI** using SDKMAN or manually (`sdk install springboot`).
+- Use **Spring Initializr** (`https://start.spring.io/`) to generate a new Spring Boot project with required dependencies.
+- Use `mvn spring-boot:run` or `./gradlew bootRun` to start the application.
+- Ensure you include necessary dependencies like `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, etc.
+ 
+## 2. **Project Structure**
+- Follow the standard **Spring Boot project structure** (e.g., `src/main/java`, `src/main/resources`).
+- Organize packages into layers: `controller`, `service`, `repository`, `config`, `dto`, `model`.
+- Use `@ComponentScan` judiciously to avoid scanning unnecessary packages.
+ 
+## 3. **Configuration Management**
+- Use `application.properties` or `application.yml` for environment-specific configurations.
+- Keep sensitive credentials out of the source code; use **Spring Boot Config Server**, **Vault**, or **environment variables**.
+- Define `@Configuration` classes for complex setups instead of bloating `application.yml`.
+ 
+## 4. **Dependency Management**
+- Use **Spring Boot Starter dependencies** for common functionalities (`spring-boot-starter-web`, `spring-boot-starter-data-jpa`, etc.).
+- Keep dependencies up to date and avoid unnecessary dependencies.
+- Use `spring-boot-maven-plugin` or `spring-boot-gradle-plugin` for build automation.
+ 
+## 5. **Controller Layer**
+- Use `@RestController` for APIs and `@Controller` for MVC-based applications.
+- Use `@RequestMapping` or `@GetMapping`, `@PostMapping` for route handling.
+- Return meaningful HTTP response codes (`200 OK`, `400 Bad Request`, `404 Not Found`, `500 Internal Server Error`).
+- Implement **global exception handling** with `@ControllerAdvice` and `@ExceptionHandler`.
+ 
+## 6. **Service Layer**
+- Implement **business logic** in `@Service` classes, not in controllers.
+- Keep service methods **small and single-responsibility**.
+- Use `@Transactional` where required for database operations.
+ 
+## 7. **Repository Layer**
+- Use `@Repository` for **Spring Data JPA** repositories.
+- Prefer **JpaRepository/CrudRepository** for common database operations.
+- Write **custom queries** using `@Query` annotation when necessary.
+ 
+## 8. **DTO & Model Layer**
+- Separate **entity classes** from **DTO (Data Transfer Objects)**.
+- Use **DTOs** for request and response mapping in controllers.
+- Use tools like **MapStruct** for object mapping to avoid manual conversions.
+ 
+## 9. **Security & Authentication**
+- Use **Spring Security** with `@EnableWebSecurity` and `SecurityFilterChain` for authentication.
+- Implement **JWT (JSON Web Token)** or OAuth2 for securing REST APIs.
+- Secure sensitive endpoints using `@PreAuthorize`, `@RolesAllowed`, or method-level security.
+ 
+## 10. **Logging & Monitoring**
+- Use **SLF4J with Logback** for logging (`@Slf4j` from Lombok).
+- Store logs externally in **ELK stack** or **Grafana Loki** for production.
+- Monitor application metrics using **Spring Boot Actuator**.
+ 
+## 11. **Error Handling & Exception Management**
+- Implement global exception handling using `@ControllerAdvice`.
+- Return meaningful **error messages** and HTTP status codes.
+- Log exceptions properly without exposing sensitive information.
+ 
+## 12. **Testing Best Practices**
+- Use **JUnit 5** and **Mockito** for unit testing.
+- Use `@SpringBootTest` for integration testing.
+- Mock database interactions using **H2 in-memory database**.
+- Ensure a good test coverage (at least 80%).
+ 
+## 13. **Performance Optimization**
+- Use **caching** (EhCache, Redis, Caffeine) for frequent queries.
+- Optimize **database queries** using indexes and pagination.
+- Use **connection pooling** (HikariCP) for better database performance.
+- Reduce unnecessary bean initialization using `@Lazy`.
+ 
+## 14. **Database Best Practices**
+- Use **Flyway** or **Liquibase** for database migrations.
+- Normalize database schema but avoid excessive joins.
+- Use proper **indexes** for faster queries.
+- Optimize queries using **JPQL** or **native queries** where needed.
+ 
+## 15. **Microservices & API Communication**
+- Use **Feign Client** or **RestTemplate** for calling external APIs.
+- Implement **Circuit Breaker** with Resilience4j or Hystrix for fault tolerance.
+- Use **Spring Cloud Config** for centralized configuration management.
+ 
+## 16. **Containerization & Deployment**
+- Use **Docker** to containerize the Spring Boot application.
+- Write a proper `Dockerfile` with **multi-stage builds**.
+- Use **Kubernetes (K8s)** or **AWS ECS** for deployment.
+- Use **CI/CD pipelines** (GitHub Actions, Jenkins) for automated deployments.
+ 
+## 17. **Environment Management**
+- Use profiles like `dev`, `staging`, `prod` (`application-{profile}.yml`).
+- Use **Spring Cloud Config** for dynamic configuration changes.
+- Ensure proper **resource allocation** in production.
+ 
+## 18. **API Documentation**
+- Use **Swagger/OpenAPI** for documenting APIs (`springdoc-openapi` dependency).
+- Clearly define **request/response models**.
+- Keep API documentation up to date.
+ 
+## 19. **Code Quality & Standards**
+- Follow **SOLID principles**.
+- Use **Lombok** to reduce boilerplate code.
+- Ensure **proper naming conventions** for classes, variables, and methods.
+- Run **SonarQube** for static code analysis.
+ 
+## 20. **Concurrency & Async Processing**
+- Use `@Async` for background tasks.
+- Use **ExecutorService** or **Spring Task Scheduler** for scheduled jobs.
+- Ensure thread safety with **synchronized blocks** or **locks** where required.
+ 
+## 21. **Versioning & Backward Compatibility**
+- Version APIs (`/api/v1/resource`).
+- Maintain backward compatibility for older versions.
+- Use feature flags for progressive feature rollouts.
+ 
+## 22. **Graceful Shutdown & Health Checks**
+- Implement **shutdown hooks** for cleaning up resources.
+- Use **Spring Boot Actuator** for health checks (`/actuator/health`).
+- Handle **SIGTERM signals** in containerized environments.
+ 
+ 
+ 
+ 
+
+ 
