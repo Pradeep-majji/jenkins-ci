@@ -11,16 +11,16 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: "https://github.com/${GITHUB_REPO}.git"
+                checkout([$class: 'GitSCM', 
+                    branches: [[name: '*/main']],  
+                    userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git"]]
+                ])
             }
         }
         
         stage('Build') {
             steps {
-                withMaven(maven: 'Maven') {
-                    bat 'mvn clean package -DskipTests'
-                }
+                bat 'mvn clean package -DskipTests'
             }
         }
         
@@ -28,21 +28,16 @@ pipeline {
             steps {
                 script {
                     def warFile = "target/employee-management-0.0.1-SNAPSHOT.war"
+                    def deployUrl = "http://%TOMCAT_USERNAME%:%TOMCAT_PASSWORD%@localhost:8085/manager/text/deploy?path=/employee-management&update=true"
                     
-                    // Undeploy if exists
-                    bat """
-                        curl -v -u %TOMCAT_USERNAME%:%TOMCAT_PASSWORD% "http://localhost:8085/manager/text/undeploy?path=/employee-management"
-                    """
+                    // First, try to undeploy if exists
+                    bat "curl -v -u %TOMCAT_USERNAME%:%TOMCAT_PASSWORD% \"http://localhost:8085/manager/text/undeploy?path=/employee-management\""
                     
-                    // Deploy
-                    bat """
-                        curl -v -T "%warFile%" "http://%TOMCAT_USERNAME%:%TOMCAT_PASSWORD%@localhost:8085/manager/text/deploy?path=/employee-management&update=true"
-                    """
+                    // Then deploy
+                    bat "curl -v -T \"${warFile}\" \"${deployUrl}\""
                     
                     // Verify deployment
-                    bat """
-                        curl -v -u %TOMCAT_USERNAME%:%TOMCAT_PASSWORD% "http://localhost:8085/manager/text/list"
-                    """
+                    bat "curl -v -u %TOMCAT_USERNAME%:%TOMCAT_PASSWORD% \"http://localhost:8085/manager/text/list\""
                 }
             }
         }
