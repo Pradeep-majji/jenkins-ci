@@ -802,102 +802,76 @@ Would you like me to help you with any of these configuration steps? Or would yo
 
 _**User**_
 
-while i am running the same jenkins file it is working fine but when i am using the pipelinescriptscm it is raising error
+i wan to rerun the pipeline whenever there is push to main branch
 
 ---
 
 _**Assistant**_
 
-I understand the issue. When using Pipeline Script from SCM (Source Code Management), there might be issues with the script execution. Let's modify the Jenkinsfile to make it more compatible with SCM-based pipeline execution:
+I'll help you set up automatic pipeline triggering when there's a push to the main branch. This requires two parts:
+
+1. First, let's update the Jenkinsfile to specify the branch trigger:
 
 
 ---
 
 ```diff
-          stage('Checkout') {
-              steps {
--                 checkout([$class: 'GitSCM', 
--                     branches: [[name: '*/main']],  
--                     userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git"]]
--                 ])
-+                 git branch: 'main',
-+                     url: "https://github.com/${GITHUB_REPO}.git"
-              }
-          }
-          
-          stage('Build') {
-              steps {
-+                 withMaven(maven: 'Maven') {
-                      bat 'mvn clean package -DskipTests'
-+                 }
-              }
-          }
-```
-
-```diff
-                  script {
-                      def warFile = "target/employee-management-0.0.1-SNAPSHOT.war"
--                     def deployUrl = "http://%TOMCAT_USERNAME%:%TOMCAT_PASSWORD%@localhost:8085/manager/text/deploy?path=/employee-management&update=true"
-+                     
-+                     // Undeploy if exists
-+                     bat """
-+                         curl -v -u %TOMCAT_USERNAME%:%TOMCAT_PASSWORD% "http://localhost:8085/manager/text/undeploy?path=/employee-management"
-+                     """
-                      
--                     // First, try to undeploy if exists
--                     bat "curl -v -u %TOMCAT_USERNAME%:%TOMCAT_PASSWORD% \"http://localhost:8085/manager/text/undeploy?path=/employee-management\""
--                     
--                     // Then deploy
--                     bat "curl -v -T \"${warFile}\" \"${deployUrl}\""
-+                     // Deploy
-+                     bat """
-+                         curl -v -T "%warFile%" "http://%TOMCAT_USERNAME%:%TOMCAT_PASSWORD%@localhost:8085/manager/text/deploy?path=/employee-management&update=true"
-+                     """
-                      
-                      // Verify deployment
--                     bat "curl -v -u %TOMCAT_USERNAME%:%TOMCAT_PASSWORD% \"http://localhost:8085/manager/text/list\""
-+                     bat """
-+                         curl -v -u %TOMCAT_USERNAME%:%TOMCAT_PASSWORD% "http://localhost:8085/manager/text/list"
-+                     """
-                  }
-              }
+  pipeline {
+      agent any
++     
++     triggers {
++         pollSCM('* * * * *')  // Poll every minute
++     }
+      
+      environment {
 ```
 
 ---
 
-Key changes made:
-1. Simplified the git checkout step using the `git` step instead of `checkout`
-2. Added `withMaven` wrapper to ensure Maven is properly configured
-3. Used triple quotes (`"""`) for multi-line commands to handle Windows paths better
-4. Simplified the curl commands and made them more readable
-5. Removed unnecessary variable declarations
+2. Now, you need to configure the Jenkins job to use GitHub webhooks. Here are the steps:
 
-Also, make sure in your Jenkins job configuration:
+1. **In Jenkins:**
+   - Go to your pipeline job
+   - Click "Configure"
+   - Under "Build Triggers" section:
+     - Check "GitHub hook trigger for GITScm polling"
+   - Under "Source Code Management":
+     - Select "Git"
+     - Enter your repository URL
+     - In "Branch Specifier", enter `*/main`
+   - Save the configuration
 
-1. **Pipeline Configuration:**
-   - Definition: Pipeline script from SCM
-   - SCM: Git
-   - Repository URL: Your GitHub repository URL
-   - Credentials: Your GitHub credentials
-   - Branch Specifier: `*/main`
-   - Script Path: `Jenkinsfile`
+2. **In GitHub:**
+   - Go to your repository
+   - Click "Settings"
+   - Click "Webhooks" in the left sidebar
+   - Click "Add webhook"
+   - Configure the webhook:
+     - Payload URL: `http://your-jenkins-url:9090/github-webhook/`
+     - Content type: `application/json`
+     - Secret: (leave empty for now)
+     - Events: Select "Just the push event"
+   - Click "Add webhook"
 
-2. **Jenkins Global Tools Configuration:**
-   - Go to Jenkins Dashboard → Manage Jenkins → Global Tool Configuration
-   - Make sure Maven is configured:
-     - Name: Maven
-     - MAVEN_HOME: Your Maven installation path
+3. **Since your Jenkins is running locally:**
+   You'll need to expose your Jenkins server to the internet using ngrok:
+   ```bash
+   ngrok http 9090
+   ```
+   Then use the ngrok URL in your GitHub webhook configuration.
 
-3. **Jenkins Credentials:**
-   - Make sure you have GitHub credentials configured in Jenkins
-   - Go to Jenkins Dashboard → Credentials → System → Global credentials
-   - Add your GitHub credentials if not already present
+4. **Verify the webhook:**
+   - After adding the webhook, GitHub will send a test payload
+   - You should see a green checkmark if the webhook was delivered successfully
+   - If it fails, check the webhook delivery logs for details
 
-4. **Jenkins Environment Variables:**
-   - Make sure JAVA_HOME is set in Jenkins
-   - Make sure Maven is in the system PATH
+Now, whenever you push to the main branch:
+1. GitHub will send a webhook to your Jenkins server
+2. Jenkins will detect the change
+3. The pipeline will automatically start
+4. Your application will be built and deployed to Tomcat
 
-Would you like me to help you with any of these configuration steps? Or would you like to try running the pipeline again with these changes?
+Would you like me to help you with any of these configuration steps? Or would you like to test the webhook setup?
 
 ---
 

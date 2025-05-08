@@ -1,6 +1,10 @@
 pipeline {
     agent any
     
+    triggers {
+        pollSCM('* * * * *')  // Poll every minute
+    }
+    
     environment {
         TOMCAT_URL = 'http://localhost:8085'
         TOMCAT_USERNAME = 'admin'
