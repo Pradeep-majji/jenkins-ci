@@ -39,7 +39,6 @@ public class EmployeeController {
             return ResponseEntity.ok(employeeService.getEmployeeByIdUsingProcedure(id));
         } catch (Exception e) {
             System.out.println("SQLException: " + e.getMessage());
-            System.out.println("SQLException: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
