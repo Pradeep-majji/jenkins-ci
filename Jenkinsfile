@@ -3,9 +3,9 @@ pipeline {
     
     environment {
         TOMCAT_URL = 'http://localhost:8085'
-        TOMCAT_USERNAME = 'tomcat'
-        TOMCAT_PASSWORD = 'tomcat'
-        GITHUB_REPO = 'your-github-username/employee-management'
+        TOMCAT_USERNAME = 'admin'
+        TOMCAT_PASSWORD = 'root'
+        GITHUB_REPO = 'Pradeep-majji/jenkins-ci'
     }
     
     stages {
