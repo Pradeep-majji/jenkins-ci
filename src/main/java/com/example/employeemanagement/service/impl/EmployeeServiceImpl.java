@@ -4,24 +4,20 @@ import com.example.employeemanagement.dao.EmployeeDAO;
 import com.example.employeemanagement.exception.ResourceNotFoundException;
 import com.example.employeemanagement.model.Employee;
 import com.example.employeemanagement.repository.EmployeeRepository;
-import com.example.employeemanagement.service.EmployeeService;
 import com.example.employeemanagement.service.EmpService;
+import com.example.employeemanagement.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
-
-    @Autowired
-    private EmployeeDAO employeeDAO;
-
+    
     @Autowired
     private EmpService empService;
 
@@ -38,11 +34,16 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Employee getEmployeeByIdUsingProcedure(int id) {
+        Employee employee = null;
         try {
-            return empService.getEmployeeById(id);
+            employee = empService.getEmployeeById(id);
         } catch (SQLException e) {
-            throw new RuntimeException("Error fetching employee using procedure: " + e.getMessage(), e);
+            e.printStackTrace();
         }
+        if (employee == null) {
+            throw new ResourceNotFoundException("Employee not found with id: " + id);
+        }
+        return employee;
     }
 
     @Override

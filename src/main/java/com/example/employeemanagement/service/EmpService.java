@@ -7,8 +7,8 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
- 
-import org.postgresql.util.PGobject;
+import oracle.sql.STRUCT;
+import oracle.jdbc.OracleTypes;
  
 import com.example.employeemanagement.model.Employee;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,42 +26,24 @@ public class EmpService {
         Employee employee = new Employee();
  
         Connection conn = dataSource.getConnection();
-        CallableStatement cs = conn.prepareCall("CALL getEmployeeById(?, ?)");
+        CallableStatement cs = conn.prepareCall("{ call getEmployeeById(?, ?) }");
  
+        // Set the input parameter
         cs.setInt(1, empId);
-        // Register OUT parameter as Types.OTHER (since we're returning a JSON)
-        cs.registerOutParameter(2, Types.OTHER);
+        
+        // Register OUT parameter as STRUCT (for emp_record_type)
+        cs.registerOutParameter(2, OracleTypes.STRUCT, "EMP_RECORD_TYPE");
  
         cs.execute();
  
-        // Retrieve the OUT parameter (JSON object)
-        Object outParam = cs.getObject(2);
- 
-        if (outParam instanceof PGobject) {
-            PGobject pgObject = (PGobject) outParam;
-            String jsonValue = pgObject.getValue(); // This will be a JSON string
- 
-            // Now, map the JSON string to the Employee object
-            // You can use a JSON parsing library like Jackson or Gson to deserialize it
-            // For simplicity, let's assume a basic example here:
- 
-            // Example: Parsing the JSON manually (using Jackson or any other JSON library)
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = null;
-            try {
-                jsonNode = objectMapper.readTree(jsonValue);
-            } catch (JsonMappingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
- 
-            employee.setEmpid(jsonNode.get("empid").asInt());
-            employee.setEmpname(jsonNode.get("empname").asText());
-            employee.setSalary(jsonNode.get("salary").asInt());
-            employee.setDeptno(jsonNode.get("deptno").asInt());
+        // Get the STRUCT object
+        STRUCT struct = (STRUCT) cs.getObject(2);
+        if (struct != null) {
+            Object[] attributes = struct.getAttributes();
+            employee.setEmpid(((Number) attributes[0]).intValue());
+            employee.setEmpname((String) attributes[1]);
+            employee.setSalary(((Number) attributes[2]).intValue());
+            employee.setDeptno(((Number) attributes[3]).intValue());
         }
  
         cs.close();

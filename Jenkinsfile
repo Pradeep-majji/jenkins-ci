@@ -19,7 +19,7 @@ pipeline {
                     branches: [[name: '*/main']],  
                     userRemoteConfigs: [[url: "https://github.com/${GITHUB_REPO}.git"]]
                 ])
-            }
+            } 
         }
         
         stage('Build') {
